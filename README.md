@@ -1,4 +1,4 @@
-###　EscaperEducation
+### EscaperEducation
 
 #### Main.py
 メインで動かすやつ
