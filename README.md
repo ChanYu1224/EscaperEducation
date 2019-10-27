@@ -1,7 +1,7 @@
 ### EscaperEducation
 
 #### Main.py
-メインで動かすやつ
+メインで動かすやつ  
 GUIとかはこれで扱う（と思う）
 
 #### GridMap.py
