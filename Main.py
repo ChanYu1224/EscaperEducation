@@ -4,12 +4,15 @@
 import pygame
 from pygame.locals import * 
 import sys
-
+from time import sleep
 
 
 #ソース読み込み
-import GridMap
-import Agent
+from GridMap import GridMap
+from Agent import Agent
+from State import State
+from Controller import Controller
+
 
 
 
@@ -27,6 +30,8 @@ SCREEN_SIZE = (1200, 600)
 CAPTION = "Oni Gkko"
 CELLS_SIZE = (1100, 500)
 
+STAMINA = 10
+
 
 
 #マップ変数
@@ -36,7 +41,7 @@ hight = 0
 
 
 #グリッドマップ読み込み
-def ReadMap( filePath ):
+def ReadMap(filePath):
   """
   ReadMap( filePath ):
   .txtファイルよりグリッドマップを読み込む．
@@ -75,7 +80,7 @@ def ReadMap( filePath ):
 
 
 #グリッドマップ描写
-def drawGridMap( screen, grid: GridMap ):
+def drawGridMap(screen, grid: GridMap):
   """
   drawGridMap( screen, grid: GridMap ):
   GUIへグリッド線及び壁を書き込む
@@ -83,6 +88,7 @@ def drawGridMap( screen, grid: GridMap ):
     screen: pygameのGUI変数
     grid: 　グリッドマップ用のクラス変数
   """
+
   for i in range(grid.width):
     pygame.draw.line(screen, BLACK, (grid.pos_x[i], grid.pos_y[0]), (grid.pos_x[i], grid.pos_y[-2]), 1)
   for i in range(grid.hight):
@@ -96,27 +102,72 @@ def drawGridMap( screen, grid: GridMap ):
 
 
 
+#エージェント描写（鬼：赤，人：青）
+def drawAgents(screen, grid:GridMap, orga:Agent, human:Agent):
+  """
+  drawAgents(screen, grid, orga, human)
+  GUIへエージェントを描写する．
+
+    screen: pygameのGUI変数
+    grid: グリッドマップ用のクラス変数
+    orga: 鬼のクラス
+    human: 人間のクラス
+  """
+
+  wall_rect = ((grid.pos_x[orga.x], grid.pos_y[orga.y]), (grid.cell_size, grid.cell_size))
+  screen.fill(RED, wall_rect)
+  wall_rect = ((grid.pos_x[human.x], grid.pos_y[human.y]), (grid.cell_size, grid.cell_size))
+  screen.fill(BLUE, wall_rect)
+
+
+
 def main():
   #マップ読み込み
   print("FilePath (Environment_*.txt) :", end="")
   tmpMap = ReadMap( input() )
-  Grid = GridMap.GridMap(width, hight, tmpMap, SCREEN_SIZE, CELLS_SIZE)
+  grid = GridMap(width, hight, tmpMap, SCREEN_SIZE, CELLS_SIZE)
+
+  #エージェント作成
+  orga = Agent(stamina_max=STAMINA)
+  human = Agent(stamina_max=STAMINA)
+
+  #状態
+  state = State()
+
+  #コントローラー
+  controller = Controller()
+
+  #スポーンさせる
+  while state.checkOverlap(orga, human):
+    orga.Spawn(grid)
+    human.Spawn(grid)
 
   #pygame初期化
   pygame.init()
 
-  #ウィンドウサイズ設定
+  #ウィンドウサイズ，キャプション設定
   screen = pygame.display.set_mode(SCREEN_SIZE)
-
-  #キャプション設定
   pygame.display.set_caption(CAPTION)
 
-  #グリッドマップ描写
-  screen.fill(WHITE)
-  drawGridMap(screen, Grid)
-
-  #GUI更新
+  #GUIの維持
   while True:
+    #エージェント動作
+    controller.chaseTarget(orga, human, grid, state)
+    if state.checkOverlap(orga, human):
+      orga.Spawn(grid)
+      human.Spawn(grid)
+    #sleep(0.05)
+
+    #背景（白）描写
+    screen.fill(WHITE)
+
+    #エージェント描写
+    drawAgents(screen, grid, orga, human)
+
+    #グリッドマップ描写
+    drawGridMap(screen, grid)
+
+    #pygame更新
     pygame.display.update()
 
     #イベント処理
