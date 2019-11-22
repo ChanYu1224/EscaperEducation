@@ -1,6 +1,8 @@
 #encode:utf-8
 
 import queue
+import random
+import copy
 
 from Agent import Agent
 from GridMap import GridMap
@@ -14,9 +16,21 @@ INF = 10000
 
 class State():
 
+  def reverse_direction(self, d):
+    if d == 0:
+      return 1
+    if d == 1:
+      return 0
+    if d == 2:
+      return 3
+    if d == 3:
+      return 2
+
+
   def checkOverlap(self, chaser:Agent, target:Agent):
     return chaser.x == target.x and chaser.y == target.y
   
+
   def canHear(self, searcher:Agent, target:Agent, grid:GridMap):
 
     for i in range(-2,3):
@@ -28,6 +42,7 @@ class State():
     
     return False
   
+
   def canWatch(self, searcher:Agent, target:Agent, grid:GridMap):
     
     q = queue.Queue()
@@ -94,3 +109,50 @@ class State():
           left = max(left, move)
     
     return False
+  
+
+  def nextDirection(self, chaser:Agent, target:Agent, grid:GridMap):
+    
+    if self.canHear(chaser, target, grid):
+      q = queue.Queue()
+
+      Visited = copy.deepcopy(grid.isWall)
+    
+      distance = [[-1 for i in range(grid.hight)] for i in range(grid.width)]
+
+      Visited[target.x][target.y] = True
+      q.put([target.x, target.y])
+
+      while not q.empty():
+        now = q.get()
+
+        for i in range(4):
+
+          if now[0] + dx[i] == chaser.get_x() and now[1] + dy[i] == chaser.get_y():
+            return self.reverse_direction(i)
+              
+
+          if not Visited[now[0] + dx[i]][now[1] + dy[i]]:
+            Visited[now[0] + dx[i]][now[1] + dy[i]] = True
+            q.put([now[0]+dx[i], now[1]+dy[i]])
+
+
+    if self.canWatch(chaser, target, grid):
+      return chaser.get_direction()
+    
+    else:
+      while True:
+        if grid.canMove(chaser.get_x() + dx[chaser.get_direction()], chaser.get_y() + dy[chaser.get_direction()]):
+          p = random.random()
+          
+          if p < chaser.direction_par:
+            chaser.set_direction(random.randint(0,3))
+            chaser.reset_direction_par()
+            while not grid.canMove(chaser.get_x() + dx[chaser.get_direction()], chaser.get_y() + dy[chaser.get_direction()]):
+              chaser.set_direction(random.randint(0,3))
+          else:
+            chaser.plus_direction_par()
+
+          return chaser.get_direction()
+        else:
+          chaser.set_direction(random.randint(0,3))

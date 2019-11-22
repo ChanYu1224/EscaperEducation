@@ -123,8 +123,7 @@ def drawAgents(screen, grid:GridMap, orga:Agent, human:Agent):
 
 def main():
   #マップ読み込み
-  print("FilePath (Environment_*.txt) :", end="")
-  tmpMap = ReadMap( input() )
+  tmpMap = ReadMap( input("FilePath (Environment_*.txt) :") )
   grid = GridMap(width, hight, tmpMap, SCREEN_SIZE, CELLS_SIZE)
 
   #エージェント作成
@@ -156,7 +155,7 @@ def main():
     if state.checkOverlap(orga, human):
       orga.Spawn(grid)
       human.Spawn(grid)
-    #sleep(0.05)
+    sleep(0.05)
 
     #背景（白）描写
     screen.fill(WHITE)
