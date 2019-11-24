@@ -16,6 +16,7 @@ class Agent(object):
     self.stamina_max = stamina_max
     self.direction = 0
     self.direction_par = 0.0
+    self.isFound = False
 
 
   def plus_direction_par(self):

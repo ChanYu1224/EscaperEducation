@@ -17,6 +17,7 @@ INF = 10000
 class State():
 
   def reverse_direction(self, d):
+
     if d == 0:
       return 1
     if d == 1:
@@ -27,7 +28,11 @@ class State():
       return 2
 
 
-  def checkOverlap(self, chaser:Agent, target:Agent):
+  def enemyDirection(self, chaser:Agent, target:Agent):
+    return self.reverse_direction(chaser.get_direction())
+
+
+  def isOverlap(self, chaser:Agent, target:Agent):
     return chaser.x == target.x and chaser.y == target.y
   
 
@@ -114,6 +119,7 @@ class State():
   def nextDirection(self, chaser:Agent, target:Agent, grid:GridMap):
     
     if self.canHear(chaser, target, grid):
+
       q = queue.Queue()
 
       Visited = copy.deepcopy(grid.isWall)

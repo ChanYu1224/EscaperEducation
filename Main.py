@@ -137,9 +137,7 @@ def main():
   controller = Controller()
 
   #スポーンさせる
-  while state.checkOverlap(orga, human):
-    orga.Spawn(grid)
-    human.Spawn(grid)
+  controller.gameSet(orga, human, grid, state)
 
   #pygame初期化
   pygame.init()
@@ -152,7 +150,7 @@ def main():
   while True:
     #エージェント動作
     controller.chaseTarget(orga, human, grid, state)
-    if state.checkOverlap(orga, human):
+    if state.isOverlap(orga, human):
       orga.Spawn(grid)
       human.Spawn(grid)
     sleep(0.05)
