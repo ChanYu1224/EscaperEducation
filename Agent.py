@@ -16,7 +16,7 @@ class Agent(object):
     self.stamina_max = stamina_max
     self.direction = 0
     self.direction_par = 0.0
-    self.isFound = False
+    self.isFind = False
 
 
   def plus_direction_par(self):
@@ -43,6 +43,10 @@ class Agent(object):
     return self.direction
 
 
+  def get_isFind(self):
+    return self.isFind
+
+
   def consume_stamina(self):
     self.stamina -= 1
   
@@ -53,6 +57,10 @@ class Agent(object):
 
   def set_direction(self, dire):
     self.direction = dire
+  
+
+  def set_isFind(self, isfind):
+    self.isFind = isfind
 
 
   def Spawn(self, grid:GridMap):

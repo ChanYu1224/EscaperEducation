@@ -12,6 +12,7 @@ class Controller():
     chaser.Walk(dire)
   
   def gameSet(self, chaser:Agent, target:Agent, grid:GridMap, state:State):
+    
     while state.isOverlap(chaser, target):
       chaser.Spawn(grid)
       target.Spawn(grid)

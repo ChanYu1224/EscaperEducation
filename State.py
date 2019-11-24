@@ -116,9 +116,14 @@ class State():
     return False
   
 
+  def isFind(self, chaser:Agent):
+    return chaser.get_isFind()
+  
+
   def nextDirection(self, chaser:Agent, target:Agent, grid:GridMap):
     
     if self.canHear(chaser, target, grid):
+      chaser.set_isFind(True)
 
       q = queue.Queue()
 
@@ -144,9 +149,11 @@ class State():
 
 
     if self.canWatch(chaser, target, grid):
+      chaser.set_isFind(True)
       return chaser.get_direction()
     
     else:
+      chaser.set_isFind(False)
       while True:
         if grid.canMove(chaser.get_x() + dx[chaser.get_direction()], chaser.get_y() + dy[chaser.get_direction()]):
           p = random.random()
