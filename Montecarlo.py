@@ -30,13 +30,13 @@ class Montecarlo():
 
   def getReward(self, chaser:Agent, target:Agent, state:State):
     if state.isOverlap(chaser, target):
-      return -100
+      return -500
     elif self.now_turn == turn:
-      return 100
+      return 500
     elif state.get_isFind():
       return -1
     elif state.get_isOutOfVision():
-      return 10
+      return 50
     else:
       return 1
 
@@ -57,7 +57,7 @@ class Montecarlo():
     else:
       max_q = 0
       for i in range(4):
-        if max_q < self.q[now_st[0]][now_st[1]][now_st[2]][i]:
+        if max_q < self.q[now_st[0]][now_st[1]][now_st[2]][i] and state.canMoveDirection(target, grid, i):
           max_q = self.q[now_st[0]][now_st[1]][now_st[2]][i]
           action = i
     
@@ -74,6 +74,17 @@ class Montecarlo():
     self.reward.append(rw)
 
 
+  def updateQValue(self):
+    
+    while len(self.st):
+      tmp_state = self.st.pop()
+      tmp_act = self.act.pop()
+      tmp_reward = self.reward.pop()
+
+      self.total_reward = tmp_reward + self.total_reward * gamma
+      self.q[tmp_state[0]][tmp_state[1]][tmp_state[2]][tmp_act] = (1-alpha)*self.q[tmp_state[0]][tmp_state[1]][tmp_state[2]][tmp_act] + self.total_reward
+
+
   def proceedTurn(self, chaser:Agent, target:Agent, state:State, grid:GridMap, ctr:Controller):
 
     self.doAction(chaser, target, grid, state)
@@ -82,6 +93,7 @@ class Montecarlo():
 
     if state.isOverlap(chaser, target):
       ctr.gameSet(chaser, target, grid, state)
+      self.updateQValue()
       self.now_turn = 1
       self.now_episode += 1
 

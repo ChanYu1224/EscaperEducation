@@ -1,0 +1,8 @@
+from collections import deque
+
+d = deque([1,2,3])
+
+while len(d):
+  print(d.pop())
+
+print("end")

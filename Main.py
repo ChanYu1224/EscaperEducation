@@ -153,7 +153,6 @@ def main():
   while True:
     #エージェント動作
     montecarlo.proceedTurn(orga, human, state, grid, controller)
-    sleep(0.05)
 
     #背景（白）描写
     screen.fill(WHITE)

@@ -65,7 +65,7 @@ class Agent(object):
       tmp_x = random.randint(0, grid.width-1)
       tmp_y = random.randint(0, grid.hight-1)
 
-      if not grid.isWall[tmp_x][tmp_y]:
+      if grid.canMove(tmp_x, tmp_y):
         self.x = tmp_x
         self.y = tmp_y
         return
