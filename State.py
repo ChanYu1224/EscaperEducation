@@ -169,3 +169,23 @@ class State():
           return chaser.get_direction()
         else:
           chaser.set_direction(random.randint(0,3))
+  
+
+  def getState(self, chaser:Agent, target:Agent):
+
+    dire = self.enemyDirection(chaser, target)
+    if not target.get_isFind():
+      dire = 4
+      
+    return [target.get_x(), target.get_y, dire]
+  
+
+  def canMoveDirection(self, agent:Agent, grid:GridMap, dire):
+
+    if agent.get_x()+dx[dire] < 0 or agent.get_y()+dy[dire] < 0 or agent.get_x()+dx[dire] >= grid.width or agent.get_y()+dy[dire] >= grid.hight:
+      return False
+    else:
+      if grid.isWall[x+dx[dire]][y+dy[dire]]:
+        return False
+      else:
+        return True
