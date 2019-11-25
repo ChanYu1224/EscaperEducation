@@ -8,13 +8,16 @@ from Agent import Agent
 from GridMap import GridMap
 
 
-dx = [1, -1, 0, 0]
-dy = [0, 0, 1, -1]
+dx = [1, -1, 0, 0, 0]
+dy = [0, 0, 1, -1, 0]
 
 INF = 10000
 
 
 class State():
+  def __init__(self):
+    self.isFind = False
+    self.out_of_vision = False
 
   def reverse_direction(self, d):
 
@@ -33,7 +36,12 @@ class State():
 
 
   def isOverlap(self, chaser:Agent, target:Agent):
-    return chaser.x == target.x and chaser.y == target.y
+    overlap = False
+    for i in range(5):
+      if chaser.get_x()+dx[i] == target.get_x() and chaser.get_y()+dy[i] == target.get_y():
+        overlap = True
+        break
+    return overlap
   
 
   def canHear(self, searcher:Agent, target:Agent, grid:GridMap):
@@ -116,14 +124,19 @@ class State():
     return False
   
 
-  def isFind(self, chaser:Agent):
-    return chaser.get_isFind()
+  def get_isFind(self):
+    return self.isFind
   
+
+  def get_isOutOfVision(self):
+    return self.out_of_vision
+
 
   def nextDirection(self, chaser:Agent, target:Agent, grid:GridMap):
     
     if self.canHear(chaser, target, grid):
-      chaser.set_isFind(True)
+      self.out_of_vision = False
+      self.isFind = True
 
       q = queue.Queue()
 
@@ -149,11 +162,13 @@ class State():
 
 
     if self.canWatch(chaser, target, grid):
-      chaser.set_isFind(True)
+      self.isFind = True
+      self.out_of_vision = False
       return chaser.get_direction()
     
     else:
-      chaser.set_isFind(False)
+      self.out_of_vision = self.isFind
+      self.isFind = False
       while True:
         if grid.canMove(chaser.get_x() + dx[chaser.get_direction()], chaser.get_y() + dy[chaser.get_direction()]):
           p = random.random()
@@ -174,18 +189,17 @@ class State():
   def getState(self, chaser:Agent, target:Agent):
 
     dire = self.enemyDirection(chaser, target)
-    if not target.get_isFind():
+    if not self.get_isFind():
       dire = 4
       
-    return [target.get_x(), target.get_y, dire]
+    return [target.get_x(), target.get_y(), dire]
   
 
   def canMoveDirection(self, agent:Agent, grid:GridMap, dire):
 
     if agent.get_x()+dx[dire] < 0 or agent.get_y()+dy[dire] < 0 or agent.get_x()+dx[dire] >= grid.width or agent.get_y()+dy[dire] >= grid.hight:
       return False
+    elif grid.isWall[agent.get_x()+dx[dire]][agent.get_y()+dy[dire]]:
+      return False
     else:
-      if grid.isWall[x+dx[dire]][y+dy[dire]]:
-        return False
-      else:
-        return True
+      return True

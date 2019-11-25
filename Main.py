@@ -12,7 +12,7 @@ from GridMap import GridMap
 from Agent import Agent
 from State import State
 from Controller import Controller
-
+from Montecarlo import Montecarlo
 
 
 
@@ -139,6 +139,9 @@ def main():
   #スポーンさせる
   controller.gameSet(orga, human, grid, state)
 
+  #モンテカルロ法
+  montecarlo = Montecarlo(grid)
+
   #pygame初期化
   pygame.init()
 
@@ -149,10 +152,7 @@ def main():
   #GUIの維持
   while True:
     #エージェント動作
-    controller.chaseTarget(orga, human, grid, state)
-    if state.isOverlap(orga, human):
-      orga.Spawn(grid)
-      human.Spawn(grid)
+    montecarlo.proceedTurn(orga, human, state, grid, controller)
     sleep(0.05)
 
     #背景（白）描写

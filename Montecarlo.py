@@ -7,10 +7,13 @@ import random
 from GridMap import GridMap
 from Agent import Agent
 from State import State
+from Controller import Controller
 
 alpha = 0.1
 gamma = 0.1
 epsilon = 0.9
+turn = 500
+episode = 10000
 
 
 class Montecarlo():
@@ -21,10 +24,21 @@ class Montecarlo():
     self.act = deque()
     self.reward = deque()
     self.total_reward = 0
+    self.now_turn = 1
+    self.now_episode = 1
   
 
   def getReward(self, chaser:Agent, target:Agent, state:State):
-    return
+    if state.isOverlap(chaser, target):
+      return -100
+    elif self.now_turn == turn:
+      return 100
+    elif state.get_isFind():
+      return -1
+    elif state.get_isOutOfVision():
+      return 10
+    else:
+      return 1
 
 
   def doAction(self, chaser:Agent, target:Agent, grid:GridMap, state:State):
@@ -52,7 +66,25 @@ class Montecarlo():
     self.act.append(action)
 
 
-      
+  def writeReward(self, chaser:Agent, target:Agent, state:State):
+
+    #報酬を記録
+    rw = self.getReward(chaser, target, state)
+    self.total_reward += rw
+    self.reward.append(rw)
+
+
+  def proceedTurn(self, chaser:Agent, target:Agent, state:State, grid:GridMap, ctr:Controller):
+
+    self.doAction(chaser, target, grid, state)
+    ctr.chaseTarget(chaser, target, grid, state)
+    self.writeReward(chaser, target, state)
+
+    if state.isOverlap(chaser, target):
+      ctr.gameSet(chaser, target, grid, state)
+      self.now_turn = 1
+      self.now_episode += 1
+
   
 
 
