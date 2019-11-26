@@ -5,6 +5,7 @@ import pygame
 from pygame.locals import * 
 import sys
 from time import sleep
+import matplotlib.pyplot as plt
 
 
 #ソース読み込み
@@ -13,6 +14,8 @@ from Agent import Agent
 from State import State
 from Controller import Controller
 from Montecarlo import Montecarlo
+from Q_learning import Q_learning
+import numpy as np
 
 
 
@@ -120,42 +123,46 @@ def drawAgents(screen, grid:GridMap, orga:Agent, human:Agent):
   screen.fill(BLUE, wall_rect)
 
 
+def drawGraph( rewards ):
+  x = np.arange(0, rewards.shape[0])
+  plt.plot(x, rewards)
+  plt.show()
+
 
 def main():
   #マップ読み込み
   tmpMap = ReadMap( input("FilePath (Environment_*.txt) :") )
-  grid = GridMap(width, hight, tmpMap, SCREEN_SIZE, CELLS_SIZE)
 
-  #エージェント作成
+  #各種インスタンス作成
+  grid = GridMap(width, hight, tmpMap, SCREEN_SIZE, CELLS_SIZE)
   orga = Agent(stamina_max=STAMINA)
   human = Agent(stamina_max=STAMINA)
-
-  #状態
   state = State()
-
-  #コントローラー
   controller = Controller()
+  montecarlo = Montecarlo(grid)
+  q_learning = Q_learning(grid)
+
+  #強化学習
+  controller.gameSet(orga, human, grid, state)
+  while montecarlo.get_nowEpisode() <= 10000:
+    montecarlo.proceedTurn(orga, human, state, grid, controller)
+
+  drawGraph(np.array(montecarlo.rewardHistory))
+
+  #pygame初期化
+  pygame.init()
+  screen = pygame.display.set_mode(SCREEN_SIZE)
+  pygame.display.set_caption(CAPTION)
+  sysfont = pygame.font.SysFont(None, 20)
 
   #スポーンさせる
   controller.gameSet(orga, human, grid, state)
 
-  #モンテカルロ法
-  montecarlo = Montecarlo(grid)
-
-  #pygame初期化
-  pygame.init()
-
-  #ウィンドウサイズ，キャプション設定
-  screen = pygame.display.set_mode(SCREEN_SIZE)
-  pygame.display.set_caption(CAPTION)
-
-  #文字列設定
-  sysfont = pygame.font.SysFont(None, 20)
-
   #GUIの維持
   while True:
     #エージェント動作
-    montecarlo.proceedTurn(orga, human, state, grid, controller)
+    montecarlo.greedy_proceedTurn(orga, human, state, grid, controller)
+    sleep(0.05)
 
     #背景（白）描写
     screen.fill(WHITE)
