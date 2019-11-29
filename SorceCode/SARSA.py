@@ -15,11 +15,10 @@ ganma = 0.95
 epsilon = 0.05
 turn = 100
 
-
 dx = [1, -1, 0, 0, 0]
 dy = [0, 0, 1, -1, 0]
 
-class Q_learning():
+class SARSA():
 
   def __init__(self, grid:GridMap):
     self.q = np.zeros((grid.width, grid.hight, 5, 4))
@@ -47,27 +46,6 @@ class Q_learning():
       return 1
     else:
       return 0
-  
-
-  def getNextReward(self, chaser:Agent, target:Agent, state:State, grid:GridMap, nextDirection:int):
-    
-    tmp_chaser = copy.deepcopy(chaser)
-    tmp_target = copy.deepcopy(target)
-    tmp_state = copy.deepcopy(state)
-
-    tmp_target.Walk(nextDirection)
-    tmp_chaser.Walk(tmp_state.nextDirection(chaser, target, grid))
-
-    if state.isOverlap(tmp_chaser, tmp_target):
-      return -500
-    elif self.now_turn+1 == turn:
-      return 500
-    elif tmp_state.get_isFind():
-      return -1
-    elif tmp_state.get_isOutOfVision():
-      return 50
-    else:
-      return 1
 
 
   def doAction(self, chaser:Agent, target:Agent, grid:GridMap, state:State):
@@ -107,12 +85,19 @@ class Q_learning():
 
     #Q値更新
     nextMax_q = -100000000
-    for i in range(4):
-      if nextMax_q < self.q[next_st[0]][next_st[1]][next_st[2]][i] and grid.canMove(next_st[0]+dx[i], next_st[1]+dy[i]):
-        nextMax_q = self.q[next_st[0]][next_st[1]][next_st[2]][i]
+    p = random.random()
+    if p < epsilon or (not np.any(self.q[next_st[0]][next_st[1]][next_st[2]])):
+      while True:
+        next_action = random.randint(0,3)
+        if state.canMoveDirection(target, grid, next_action):
+          nextMax_q = nextMax_q = self.q[next_st[0]][next_st[1]][next_st[2]][next_action]
+          break
+    else:
+      for i in range(4):
+        if nextMax_q < self.q[next_st[0]][next_st[1]][next_st[2]][i] and grid.canMove(next_st[0]+dx[i], next_st[1]+dy[i]):
+          nextMax_q = self.q[next_st[0]][next_st[1]][next_st[2]][i]
     
     self.q[now_st[0]][now_st[1]][now_st[2]][action] = (1-alpha)*self.q[now_st[0]][now_st[1]][now_st[2]][action] + alpha*(self.getReward(tmp_chaser, tmp_target, tmp_state) + ganma*nextMax_q)
-
 
 
   def writeReward(self, chaser:Agent, target:Agent, state:State):
@@ -135,7 +120,7 @@ class Q_learning():
       self.now_episode += 1
       self.total_reward = 0
       if self.now_episode % 1000 == 0:
-        print("Q_learning Episode: "+ format(self.now_episode))
+        print("SARSA Episode: "+ format(self.now_episode))
     else:
       self.now_turn += 1
   

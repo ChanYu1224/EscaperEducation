@@ -18,6 +18,7 @@ class State():
   def __init__(self):
     self.isFind = False
     self.out_of_vision = False
+    self.into_visioin = False
 
   def reverse_direction(self, d):
 
@@ -132,10 +133,15 @@ class State():
     return self.out_of_vision
 
 
+  def get_intoVision(self):
+    return self.into_visioin
+
+
   def nextDirection(self, chaser:Agent, target:Agent, grid:GridMap):
     
     if self.canHear(chaser, target, grid):
       self.out_of_vision = False
+      self.into_visioin = not self.isFind
       self.isFind = True
 
       q = queue.Queue()
@@ -162,11 +168,13 @@ class State():
 
 
     if self.canWatch(chaser, target, grid):
+      self.into_visioin = not self.isFind
       self.isFind = True
       self.out_of_vision = False
       return chaser.get_direction()
     
     else:
+      self.into_visioin = False
       self.out_of_vision = self.isFind
       self.isFind = False
       while True:

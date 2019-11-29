@@ -6,6 +6,7 @@ from pygame.locals import *
 import sys
 from time import sleep
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 #ソース読み込み
@@ -13,10 +14,14 @@ from GridMap import GridMap
 from Agent import Agent
 from State import State
 from Controller import Controller
+
 from Montecarlo import Montecarlo
 from Q_learning import Q_learning
-import numpy as np
+from ProfitSharing import ProfitSharing
+from SARSA import SARSA
 
+#エピソード数
+EPISODE = 5000
 
 
 #色の定義
@@ -123,10 +128,12 @@ def drawAgents(screen, grid:GridMap, orga:Agent, human:Agent):
   screen.fill(BLUE, wall_rect)
 
 
-def drawGraph( rewards ):
+def plotGraph( rewards, name ):
   x = np.arange(0, rewards.shape[0])
-  plt.plot(x, rewards)
-  plt.show()
+  n = 100
+  one = np.ones(n)/n
+  y = np.convolve(rewards, one, mode='same')
+  plt.plot(x, y, label=name)
 
 
 def main():
@@ -139,16 +146,76 @@ def main():
   human = Agent(stamina_max=STAMINA)
   state = State()
   controller = Controller()
-  montecarlo = Montecarlo(grid)
-  q_learning = Q_learning(grid)
+
+  #学習アルゴリズムの決定
+  learning = Montecarlo(grid)
 
   #強化学習
   controller.gameSet(orga, human, grid, state)
-  while montecarlo.get_nowEpisode() <= 10000:
-    montecarlo.proceedTurn(orga, human, state, grid, controller)
+  while learning.get_nowEpisode() <= EPISODE:
+    learning.proceedTurn(orga, human, state, grid, controller)
+  plotGraph(np.array(learning.rewardHistory), "Montecarlo")
 
-  drawGraph(np.array(montecarlo.rewardHistory))
 
+
+  #各種インスタンス作成
+  grid = GridMap(width, hight, tmpMap, SCREEN_SIZE, CELLS_SIZE)
+  orga = Agent(stamina_max=STAMINA)
+  human = Agent(stamina_max=STAMINA)
+  state = State()
+  controller = Controller()
+
+  #学習アルゴリズムの決定
+  learning = ProfitSharing(grid)
+
+  #強化学習
+  controller.gameSet(orga, human, grid, state)
+  while learning.get_nowEpisode() <= EPISODE:
+    learning.proceedTurn(orga, human, state, grid, controller)
+  plotGraph(np.array(learning.rewardHistory), "ProfitSharing")
+
+
+
+  #各種インスタンス作成
+  grid = GridMap(width, hight, tmpMap, SCREEN_SIZE, CELLS_SIZE)
+  orga = Agent(stamina_max=STAMINA)
+  human = Agent(stamina_max=STAMINA)
+  state = State()
+  controller = Controller()
+
+  #学習アルゴリズムの決定
+  learning = Q_learning(grid)
+
+  #強化学習
+  controller.gameSet(orga, human, grid, state)
+  while learning.get_nowEpisode() <= EPISODE:
+    learning.proceedTurn(orga, human, state, grid, controller)
+  plotGraph(np.array(learning.rewardHistory), "Q-Learning")
+
+
+
+  #各種インスタンス作成
+  grid = GridMap(width, hight, tmpMap, SCREEN_SIZE, CELLS_SIZE)
+  orga = Agent(stamina_max=STAMINA)
+  human = Agent(stamina_max=STAMINA)
+  state = State()
+  controller = Controller()
+
+  #学習アルゴリズムの決定
+  learning = SARSA(grid)
+
+  #強化学習
+  controller.gameSet(orga, human, grid, state)
+  while learning.get_nowEpisode() <= EPISODE:
+    learning.proceedTurn(orga, human, state, grid, controller)
+  plotGraph(np.array(learning.rewardHistory), "SARSA")
+
+
+  plt.xlabel("Episode")
+  plt.ylabel("reward")
+  plt.legend()
+  plt.show()
+  """
   #pygame初期化
   pygame.init()
   screen = pygame.display.set_mode(SCREEN_SIZE)
@@ -161,7 +228,7 @@ def main():
   #GUIの維持
   while True:
     #エージェント動作
-    montecarlo.greedy_proceedTurn(orga, human, state, grid, controller)
+    learning.greedy_proceedTurn(orga, human, state, grid, controller)
     sleep(0.05)
 
     #背景（白）描写
@@ -174,15 +241,13 @@ def main():
     drawGridMap(screen, grid)
     posit_chaser = sysfont.render("chaser x:"+str(orga.get_x())+" y:"+str(orga.get_y()), False, BLACK)
     posit_target = sysfont.render("target x:"+str(human.get_x())+" y:"+str(human.get_y()), False, BLACK)
-    turn = sysfont.render("turn:"+str(montecarlo.now_turn), False, BLACK)
-    episode = sysfont.render("episode:"+str(montecarlo.now_episode), False, BLACK)
+    turn = sysfont.render("turn:"+str(learning.now_turn), False, BLACK)
+    episode = sysfont.render("episode:"+str(learning.now_episode), False, BLACK)
     screen.blit(posit_chaser, (10,10))
     screen.blit(posit_target, (10,30))
     screen.blit(turn, (10,50))
     screen.blit(episode, (10,70))
 
-    #print("chaser x:"+str(orga.get_x())+" y:"+str(orga.get_y()))
-    #print("target x:"+str(human.get_x())+" y:"+str(human.get_y()))
 
     #pygame更新
     pygame.display.update()
@@ -192,6 +257,7 @@ def main():
       if event.type == QUIT:
         pygame.quit()
         sys.exit()
+  """
 
 
 

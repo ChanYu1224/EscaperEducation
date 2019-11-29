@@ -1,8 +1,12 @@
-from collections import deque
+n = int(input())
+s = list(input())
 
-d = deque([1,2,3])
+s_len = len(s) #文字列の長さを取得
 
-while len(d):
-  print(d.pop())
+for i in range(s_len): #文字列処理
+  tmp = ord(s[i]) + n
+  if tmp > ord('Z'):
+    tmp -= 26
+  s[i] = chr(tmp)
 
-print("end")
+print("".join(s)) #文字列出力

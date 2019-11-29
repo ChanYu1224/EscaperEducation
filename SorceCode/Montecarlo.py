@@ -10,10 +10,9 @@ from State import State
 from Controller import Controller
 
 alpha = 0.1
-gamma = 0.1
-epsilon = 0.8
-turn = 150
-episode = 10000
+ganma = 0.8
+epsilon = 0.05
+turn = 100
 
 
 class Montecarlo():
@@ -31,15 +30,19 @@ class Montecarlo():
 
   def getReward(self, chaser:Agent, target:Agent, state:State):
     if state.isOverlap(chaser, target):
-      return -500
-    elif self.now_turn == turn:
-      return 500
+      return -200
+    elif self.now_turn >= turn:
+      return 200
+    elif state.get_intoVision():
+      return -20
+    elif state.get_isOutOfVision():
+      return 20
     elif state.get_isFind():
       return -1
-    elif state.get_isOutOfVision():
-      return 100
-    else:
+    elif not state.get_isFind():
       return 1
+    else:
+      return 0
 
 
   def doAction(self, chaser:Agent, target:Agent, grid:GridMap, state:State):
@@ -51,7 +54,7 @@ class Montecarlo():
     #行動の決定
     action = -1
     p = random.random()
-    if p > epsilon or (not np.any(self.q[now_st[0]][now_st[1]][now_st[2]])):
+    if p < epsilon or (not np.any(self.q[now_st[0]][now_st[1]][now_st[2]])):
       while True:
         action = random.randint(0,3)
         if state.canMoveDirection(target, grid, action):
@@ -91,15 +94,15 @@ class Montecarlo():
 
   def updateQValue(self):
     
+    total_reward_t = 0
+
     while len(self.st):
       tmp_state = self.st.pop()
       tmp_act = self.act.pop()
       tmp_reward = self.reward.pop()
 
-      self.total_reward = tmp_reward + self.total_reward * gamma
-      self.q[tmp_state[0]][tmp_state[1]][tmp_state[2]][tmp_act] = (1-alpha)*self.q[tmp_state[0]][tmp_state[1]][tmp_state[2]][tmp_act] + self.total_reward
-    
-    self.total_reward = 0
+      total_reward_t = tmp_reward + total_reward_t * ganma
+      self.q[tmp_state[0]][tmp_state[1]][tmp_state[2]][tmp_act] = (1-alpha)*self.q[tmp_state[0]][tmp_state[1]][tmp_state[2]][tmp_act] + alpha*total_reward_t
 
 
   def proceedTurn(self, chaser:Agent, target:Agent, state:State, grid:GridMap, ctr:Controller):
@@ -114,6 +117,9 @@ class Montecarlo():
       self.updateQValue()
       self.now_turn = 1
       self.now_episode += 1
+      self.total_reward = 0
+      if self.now_episode % 1000 == 0:
+        print("Montecarlo Episode: "+ format(self.now_episode))
     else:
       self.now_turn += 1
   
